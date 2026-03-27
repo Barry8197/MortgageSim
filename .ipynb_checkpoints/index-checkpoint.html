@@ -12,16 +12,18 @@
       --grid: #E2E8F0;
       --text: #334155;
       --muted: #64748b;
-      --c1: #2563EB;   /* tranche 1 */
-      --c2: #16A34A;   /* tranche 2 */
-      --camort: #F59E0B; /* amort */
-      --ctotal: #64748B; /* total */
-      --csave: #7C3AED;  /* savings / cumulative */
-      --cdiffp: #ef4444; /* positive diff (two‑tranche more expensive) */
-      --cdiffn: #22c55e; /* negative diff (two‑tranche cheaper) */
-      --cbonus: #10B981; /* bonus highlight */
+      --c1: #2563EB;    /* tranche 1 */
+      --c2: #16A34A;    /* tranche 2 */
+      --camort: #F59E0B;/* amort */
+      --ctotal: #64748B;/* total */
+      --csave: #7C3AED; /* savings / cumulative */
+      --cdiffp: #ef4444;/* positive diff */
+      --cdiffn: #22c55e;/* negative diff */
+      --cbonus: #10B981;/* bonus highlight */
     }
-    body {
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
       margin: 0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       color: var(--text);
@@ -29,35 +31,40 @@
     }
     .container {
       max-width: 1200px;
-      margin: 24px auto;
-      padding: 0 16px;
+      margin: 16px auto 24px;
+      padding: 0 12px;
+      width: 100%;
     }
     h1 {
-      margin: 0 0 4px;
+      margin: 0 0 6px;
       font-size: 1.6rem;
       font-weight: 600;
+      line-height: 1.25;
     }
     .note {
-      margin: 0 0 16px;
+      margin: 0 0 14px;
       color: var(--muted);
       font-size: 0.95rem;
+      line-height: 1.4;
     }
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px 18px;
+      gap: 10px 14px;
       align-items: end;
       background: #fff;
       border: 1px solid var(--grid);
       border-radius: 10px;
-      padding: 12px;
+      padding: 10px;
       box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
     .control {
       display: grid;
       grid-template-columns: 1fr;
       gap: 6px;
-      min-width: 200px;
+      min-width: 180px;
+      flex: 1 1 220px; /* grow, shrink, basis */
+      max-width: 100%;
     }
     .control label {
       font-size: 0.9rem;
@@ -66,11 +73,11 @@
     .control input[type="number"],
     .control input[type="text"] {
       appearance: textfield;
-      padding: 8px 10px;
-      font-size: 0.95rem;
+      padding: 10px 12px;
+      font-size: 1rem;
       border: 1px solid var(--grid);
       border-radius: 8px;
-      width: 220px;
+      width: 100%;
       background: #fff;
     }
     input::-webkit-outer-spin-button,
@@ -82,10 +89,10 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 0 0 0;
+      padding-top: 8px;
     }
     .summary {
-      margin: 14px 0 10px;
+      margin: 12px 0 10px;
       padding: 10px 12px;
       background: #fff;
       border: 1px solid var(--grid);
@@ -95,12 +102,13 @@
       font-size: 0.95rem;
       box-shadow: 0 1px 2px rgba(0,0,0,0.04);
       overflow-x: auto;
+      white-space: nowrap;
     }
     .charts {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 16px;
-      margin: 18px 0 40px;
+      gap: 14px;
+      margin: 16px 0 28px;
     }
     .chart {
       background: #fff;
@@ -108,19 +116,31 @@
       border-radius: 10px;
       padding: 6px;
       box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      width: 100%;
+      min-height: 240px; /* ensures visibility on very small screens before Plotly renders */
     }
+    .chart.wide { grid-column: 1 / span 1; }
     .footer {
       color: var(--muted);
       font-size: 0.85rem;
-      margin: 10px 2px 30px;
+      margin: 6px 2px 24px;
     }
+
+    /* Larger screens: two columns for charts, some sizing tweaks */
     @media (min-width: 1100px) {
-      .charts {
-        grid-template-columns: 1fr 1fr;
-      }
-      .chart.wide {
-        grid-column: 1 / span 2;
-      }
+      .charts { grid-template-columns: 1fr 1fr; }
+      .chart.wide { grid-column: 1 / span 2; }
+    }
+
+    /* Small screens: tighter typography and spacing */
+    @media (max-width: 600px) {
+      h1 { font-size: 1.25rem; }
+      .note { font-size: 0.9rem; }
+      .summary { font-size: 0.9rem; white-space: normal; }
+      .controls { gap: 8px 10px; }
+      .control { flex: 1 1 100%; min-width: 140px; }
+      .control input { font-size: 0.95rem; padding: 9px 10px; }
+      .chart { min-height: 220px; }
     }
   </style>
 </head>
@@ -135,33 +155,33 @@
     <div class="controls">
       <div class="control">
         <label for="price">Property (CHF)</label>
-        <input id="price" type="number" step="10000" min="200000" value="995000" />
+        <input id="price" type="number" step="10000" min="200000" value="995000" inputmode="numeric" />
       </div>
       <div class="control">
         <label for="rate1">Rate T1 (%)</label>
-        <input id="rate1" type="number" step="0.05" min="0" value="1.8" />
+        <input id="rate1" type="number" step="0.05" min="0" value="1.8" inputmode="decimal" />
       </div>
       <div class="control">
         <label for="rate2">Rate T2 (%)</label>
-        <input id="rate2" type="number" step="0.05" min="0" value="2.2" />
+        <input id="rate2" type="number" step="0.05" min="0" value="2.2" inputmode="decimal" />
       </div>
       <div class="control">
         <label for="ratecmp">Rate compare (%)</label>
-        <input id="ratecmp" type="number" step="0.05" min="0" value="2.0" />
+        <input id="ratecmp" type="number" step="0.05" min="0" value="2.0" inputmode="decimal" />
       </div>
       <div class="control">
         <label for="years1">Years T1</label>
-        <input id="years1" type="number" step="1" min="2" max="10" value="5" />
+        <input id="years1" type="number" step="1" min="2" max="10" value="8" inputmode="numeric" />
       </div>
       <div class="control">
         <label for="years2">Years T2</label>
-        <input id="years2" type="number" step="1" min="2" max="10" value="5" />
+        <input id="years2" type="number" step="1" min="2" max="10" value="5" inputmode="numeric" />
       </div>
       <div class="control">
         <label for="split">T1 share (%)</label>
-        <input id="split" type="number" step="5" min="1" max="99" value="100" />
+        <input id="split" type="number" step="5" min="1" max="99" value="100" inputmode="numeric" />
       </div>
-      <div class="control" style="min-width:260px">
+      <div class="control" style="min-width:240px">
         <div class="check-row">
           <input id="bonus" type="checkbox" />
           <label for="bonus">🌿 Bonus Vert (waive T1 interest – Year 1)</label>
@@ -184,44 +204,37 @@
   </div>
 
   <script>
-    // Colors
-    const C1 = getCssVar('--c1');
-    const C2 = getCssVar('--c2');
-    const CAMORT = getCssVar('--camort');
-    const CTOTAL = getCssVar('--ctotal');
-    const CSAVE = getCssVar('--csave');
-    const CDIFFP = getCssVar('--cdiffp');
-    const CDIFFN = getCssVar('--cdiffn');
-    const CBONUS = getCssVar('--cbonus');
+    // Colors from CSS
+    const C1 = css('--c1'), C2 = css('--c2'), CAMORT = css('--camort'),
+          CTOTAL = css('--ctotal'), CSAVE = css('--csave'),
+          CDIFFP = css('--cdiffp'), CDIFFN = css('--cdiffn'),
+          CBONUS = css('--cbonus');
 
-    function getCssVar(name) {
-      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    }
+    function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
     // DOM
     const el = (id) => document.getElementById(id);
-    const priceEl = el('price');
-    const rate1El = el('rate1');
-    const rate2El = el('rate2');
-    const rateCmpEl = el('ratecmp');
-    const years1El = el('years1');
-    const years2El = el('years2');
-    const splitEl = el('split');
-    const bonusEl = el('bonus');
-    const summaryEl = el('summary');
+    const priceEl = el('price'), rate1El = el('rate1'), rate2El = el('rate2'),
+          rateCmpEl = el('ratecmp'), years1El = el('years1'), years2El = el('years2'),
+          splitEl = el('split'), bonusEl = el('bonus'), summaryEl = el('summary');
 
     // Constants
-    const DOWN = 0.20;
-    const NOTARY = 0.05;
-    const AMORT_RATE = 0.0124; // annual
-
+    const DOWN = 0.20, NOTARY = 0.05, AMORT_RATE = 0.0124; // annual
     const MONTHS = 120;
     const tYears = Array.from({length: MONTHS}, (_, i) => i / 12);
     const xTicks = Array.from({length: 11}, (_, i) => i);
 
-    function chf(x) {
-      return 'CHF ' + Math.round(x).toLocaleString('en-CH');
+    function isMobile() { return window.innerWidth <= 600; }
+
+    function dims() {
+      // Responsive sizes for charts and fonts
+      if (isMobile()) {
+        return { h1: 320, h2: 280, h3: 280, h4: 320, font: 14, margins: {l: 50, r: 30, t: 40, b: 40} };
+      }
+      return { h1: 480, h2: 420, h3: 420, h4: 480, font: 16, margins: {l: 60, r: 60, t: 50, b: 50} };
     }
+
+    function chf(x) { return 'CHF ' + Math.round(x).toLocaleString('en-CH'); }
 
     function clampSplit(v) {
       v = Number(v);
@@ -241,7 +254,6 @@
       const monthlyAmort2 = mortgage * AMORT_RATE * (1 - split) / 12.0;
 
       const m1 = Math.round(years1) * 12;
-      const m2 = Math.round(years2) * 12; // kept for parity, r2 does not roll
       const r1m = (rate1 / 100.0) / 12.0;
       const r2m = (rate2 / 100.0) / 12.0;
 
@@ -255,10 +267,9 @@
         const v1 = Math.max(p1[i], 0);
         const v2 = Math.max(p2[i], 0);
         const eff_r1 = (Math.floor(i / m1) === 0) ? r1m : r2m; // T1 rolls to T2 rate after term
-        const eff_r2 = r2m;
 
         ic1[i] = (applyBonus && i < 12) ? 0.0 : v1 * eff_r1; // Bonus Vert waiver in Year 1
-        ic2[i] = v2 * eff_r2;
+        ic2[i] = v2 * r2m;
 
         const a1 = Math.min(monthlyAmort1, v1);
         const a2 = Math.min(monthlyAmort2, v2);
@@ -272,12 +283,11 @@
 
       return {
         mortgage, down, notary: price * NOTARY,
-        p1_0, p2_0,
-        monthly_amort: mortgage * AMORT_RATE / 12.0,
+        p1_0, p2_0, monthly_amort: mortgage * AMORT_RATE / 12.0,
         ic1, ic2, am, total,
         principal1: p1.slice(0, MONTHS),
         principal2: p2.slice(0, MONTHS),
-        m1, m2
+        m1
       };
     }
 
@@ -300,32 +310,29 @@
     function cumulative(arr) {
       const out = new Array(arr.length);
       let run = 0;
-      for (let i = 0; i < arr.length; i++) {
-        run += arr[i];
-        out[i] = run;
-      }
+      for (let i = 0; i < arr.length; i++) { run += arr[i]; out[i] = run; }
       return out;
     }
 
     function computeAll(params) {
       const {price, rate1, rate2, years1, years2, splitPct, bonusOn, rateCmp} = params;
 
-      // Precompute both scenarios to support savings panel
+      // Precompute both for savings panel
       const withBonus = simulate(price, rate1, rate2, years1, years2, splitPct, true);
       const noBonus   = simulate(price, rate1, rate2, years1, years2, splitPct, false);
 
       const savings   = noBonus.total.map((v, i) => v - withBonus.total[i]);
       const cumSave   = cumulative(savings);
 
-      const active = bonusOn ? withBonus : noBonus;
-      const cmpTotal = singleTrancheCompareSeries(active.mortgage, rateCmp);
+      const active    = bonusOn ? withBonus : noBonus;
+      const cmpTotal  = singleTrancheCompareSeries(active.mortgage, rateCmp);
       const diffMonthly = active.total.map((v, i) => v - cmpTotal[i]);
-      const cumDiff = cumulative(diffMonthly);
+      const cumDiff     = cumulative(diffMonthly);
 
       return {withBonus, noBonus, savings, cumSave, active, diffMonthly, cumDiff};
     }
 
-    function renewalShapesAndAnnotations(years1, years2, ymax, bonusOn) {
+    function renewalShapesAndAnnotations(years1, years2, ymax, bonusOn, fontSize) {
       const shapes = [];
       const annotations = [];
 
@@ -333,8 +340,7 @@
       if (bonusOn) {
         shapes.push({
           type: 'rect', x0: 0, x1: 1, y0: 0, y1: ymax,
-          xref: 'x', yref: 'y',
-          fillcolor: CBONUS, opacity: 0.08, line: {width: 0}
+          xref: 'x', yref: 'y', fillcolor: CBONUS, opacity: 0.08, line: {width: 0}
         });
       }
 
@@ -346,7 +352,7 @@
                        line: {color: C1, width: 1, dash: 'dash', opacity: 0.5}});
           annotations.push({
             x: x + 0.06, y: ymax * 0.97, xref: 'x', yref: 'y',
-            text: 'T1↺', showarrow: false, font: {size: 16, color: C1}, valign: 'top'
+            text: 'T1↺', showarrow: false, font: {size: fontSize, color: C1}, valign: 'top'
           });
         }
       }
@@ -358,53 +364,11 @@
                        line: {color: C2, width: 1, dash: 'dot', opacity: 0.5}});
           annotations.push({
             x: x + 0.06, y: ymax * 0.85, xref: 'x', yref: 'y',
-            text: 'T2↺', showarrow: false, font: {size: 16, color: C2}, valign: 'top'
+            text: 'T2↺', showarrow: false, font: {size: fontSize, color: C2}, valign: 'top'
           });
         }
       }
       return {shapes, annotations};
-    }
-
-    function buildCharts() {
-      // Empty initial plots; they’ll be populated on first update()
-      const baseLayout = {
-        paper_bgcolor: '#ffffff',
-        plot_bgcolor: '#ffffff',
-        margin: {l: 60, r: 60, t: 50, b: 50},
-        xaxis: {title: 'Year', range: [0, 10], tick0: 0, dtick: 1},
-        font: {size: 16},
-        showlegend: true
-      };
-
-      // Chart 1: Monthly cost breakdown (stacked area + total)
-      Plotly.newPlot('chart1', [], {
-        ...baseLayout,
-        title: 'Monthly Cost Breakdown',
-        yaxis: {title: 'CHF / month', tickformat: ',.0f'}
-      }, {displayModeBar: false});
-
-      // Chart 2: Outstanding principal (k CHF)
-      Plotly.newPlot('chart2', [], {
-        ...baseLayout,
-        title: 'Outstanding Principal per Tranche',
-        yaxis: {title: 'Outstanding Principal (CHF k)', ticksuffix: 'k', tickformat: ',.0f'}
-      }, {displayModeBar: false});
-
-      // Chart 3: Bonus Vert savings vs baseline
-      Plotly.newPlot('chart3', [], {
-        ...baseLayout,
-        title: '🌿 Bonus Vert — Savings vs Standard Mortgage',
-        yaxis: {title: 'Monthly Saving (CHF)', tickformat: ',.0f'},
-        yaxis2: {title: 'Cumulative Saving (CHF)', overlaying: 'y', side: 'right', tickformat: ',.0f'}
-      }, {displayModeBar: false});
-
-      // Chart 4: Rate compare — active vs single‑tranche @ rate
-      Plotly.newPlot('chart4', [], {
-        ...baseLayout,
-        title: 'Rate Compare — Active vs Single‑tranche',
-        yaxis: {title: 'Monthly Difference (CHF)', tickformat: ',.0f'},
-        yaxis2: {title: 'Cumulative Difference (CHF)', overlaying: 'y', side: 'right', tickformat: ',.0f'}
-      }, {displayModeBar: false});
     }
 
     function update() {
@@ -417,13 +381,12 @@
       const splitPct = clampSplit(splitEl.value);
       const bonusOn = !!bonusEl.checked;
 
-      // Validate
       if (price <= 0 || rate1 < 0 || rate2 < 0 || rateCmp < 0) return;
 
       const {withBonus, noBonus, savings, cumSave, active, diffMonthly, cumDiff} =
         computeAll({price, rate1, rate2, years1, years2, splitPct, bonusOn, rateCmp});
 
-      // Summary header
+      // Summary
       const s = active;
       summaryEl.textContent =
         `Purchase: ${chf(price)} | Notary: ${chf(price * NOTARY)} | ` +
@@ -433,123 +396,106 @@
         `Amort: ${chf(s.monthly_amort)}/mo | Bonus Vert: ${bonusOn ? 'ON' : 'OFF'} | ` +
         `Compare: single‑tranche @ ${rateCmp.toFixed(2)}% for 10y`;
 
-      // Chart 1: stacked monthly cost (ic1, ic2, am) + total
+      // Responsive dims
+      const D = dims();
+
+      // Chart 1 — Monthly cost breakdown
       const ymax1 = Math.max(1, Math.max(...active.total)) * 1.15;
-      const shapesAnno = renewalShapesAndAnnotations(years1, years2, ymax1, bonusOn);
-      const t1 = {
-        type: 'scatter', mode: 'lines', x: tYears, y: active.ic1,
-        stackgroup: 'a', fill: 'tonexty', name: `Interest T1${bonusOn ? ' (Bonus Year 1)' : ''}`,
-        line: {color: C1}, hovertemplate: '%{y:,.0f}<extra></extra>'
-      };
-      const t2 = {
-        type: 'scatter', mode: 'lines', x: tYears, y: active.ic2,
-        stackgroup: 'a', fill: 'tonexty', name: 'Interest T2',
-        line: {color: C2}, hovertemplate: '%{y:,.0f}<extra></extra>'
-      };
-      const tamort = {
-        type: 'scatter', mode: 'lines', x: tYears, y: active.am,
-        stackgroup: 'a', fill: 'tonexty', name: 'Amortisation (1.24% p.a.)',
-        line: {color: CAMORT}, hovertemplate: '%{y:,.0f}<extra></extra>'
-      };
-      // First stacked needs to start from zero
-      t1.fill = 'tozeroy';
-      const totalLine = {
-        type: 'scatter', mode: 'lines', x: tYears, y: active.total,
-        line: {color: CTOTAL, dash: 'dash', width: 2}, name: 'Total',
-        hovertemplate: '%{y:,.0f}<extra></extra>'
-      };
+      const shapesAnno = renewalShapesAndAnnotations(years1, years2, ymax1, bonusOn, Math.max(12, D.font));
+      const t1 = {type: 'scatter', mode: 'lines', x: tYears, y: active.ic1, stackgroup: 'a', fill: 'tozeroy',
+                  name: `Interest T1${bonusOn ? ' (Bonus Year 1)' : ''}`, line: {color: C1},
+                  hovertemplate: '%{y:,.0f}<extra></extra>'};
+      const t2 = {type: 'scatter', mode: 'lines', x: tYears, y: active.ic2, stackgroup: 'a', fill: 'tonexty',
+                  name: 'Interest T2', line: {color: C2}, hovertemplate: '%{y:,.0f}<extra></extra>'};
+      const tamort = {type: 'scatter', mode: 'lines', x: tYears, y: active.am, stackgroup: 'a', fill: 'tonexty',
+                      name: 'Amortisation (1.24% p.a.)', line: {color: CAMORT},
+                      hovertemplate: '%{y:,.0f}<extra></extra>'};
+      const totalLine = {type: 'scatter', mode: 'lines', x: tYears, y: active.total,
+                         line: {color: CTOTAL, dash: 'dash', width: 2}, name: 'Total',
+                         hovertemplate: '%{y:,.0f}<extra></extra>'};
+
       Plotly.react('chart1', [t1, t2, tamort, totalLine], {
         title: `Monthly Cost Breakdown — Bonus ${bonusOn ? 'ON' : 'OFF'}`,
         paper_bgcolor: '#ffffff', plot_bgcolor: '#ffffff',
-        margin: {l: 60, r: 60, t: 50, b: 50},
+        margin: D.margins, height: D.h1,
         xaxis: {title: 'Year', range: [0, 10], tick0: 0, dtick: 1},
         yaxis: {title: 'CHF / month', tickformat: ',.0f', range: [0, ymax1]},
-        shapes: shapesAnno.shapes,
-        annotations: shapesAnno.annotations,
-        font: {size: 16},
-        showlegend: true
-      }, {displayModeBar: false});
+        shapes: shapesAnno.shapes, annotations: shapesAnno.annotations,
+        font: {size: D.font}, showlegend: true
+      }, {displayModeBar: false, responsive: true});
 
-      // Chart 2: outstanding principal per tranche (k CHF) + total
+      // Chart 2 — Outstanding principal (k CHF)
       const pr1k = active.principal1.map(v => v / 1000);
       const pr2k = active.principal2.map(v => v / 1000);
       const totk = pr1k.map((v, i) => v + pr2k[i]);
 
-      const tr1 = {
-        type: 'scatter', mode: 'lines', x: tYears, y: pr1k,
-        name: `Tranche 1  (${rate1.toFixed(2)}%, ${years1}yr)`,
-        line: {color: C1, width: 3}, fill: 'tozeroy', opacity: 0.15,
-        hovertemplate: '%{y:,.0f}k<extra></extra>'
-      };
-      const tr2 = {
-        type: 'scatter', mode: 'lines', x: tYears, y: pr2k,
-        name: `Tranche 2  (${rate2.toFixed(2)}%, ${years2}yr)`,
-        line: {color: C2, width: 3}, fill: 'tozeroy', opacity: 0.15,
-        hovertemplate: '%{y:,.0f}k<extra></extra>'
-      };
-      const trtot = {
-        type: 'scatter', mode: 'lines', x: tYears, y: totk,
-        name: 'Total', line: {color: CTOTAL, dash: 'dash', width: 2},
-        hovertemplate: '%{y:,.0f}k<extra></extra>'
-      };
+      const tr1 = {type: 'scatter', mode: 'lines', x: tYears, y: pr1k, name: `Tranche 1 (${rate1.toFixed(2)}%, ${years1}yr)`,
+                   line: {color: C1, width: 3}, fill: 'tozeroy', opacity: 0.15,
+                   hovertemplate: '%{y:,.0f}k<extra></extra>'};
+      const tr2 = {type: 'scatter', mode: 'lines', x: tYears, y: pr2k, name: `Tranche 2 (${rate2.toFixed(2)}%, ${years2}yr)`,
+                   line: {color: C2, width: 3}, fill: 'tozeroy', opacity: 0.15,
+                   hovertemplate: '%{y:,.0f}k<extra></extra>'};
+      const trtot = {type: 'scatter', mode: 'lines', x: tYears, y: totk, name: 'Total',
+                     line: {color: CTOTAL, dash: 'dash', width: 2},
+                     hovertemplate: '%{y:,.0f}k<extra></extra>'};
+
       Plotly.react('chart2', [tr1, tr2, trtot], {
         title: 'Outstanding Principal per Tranche',
         paper_bgcolor: '#ffffff', plot_bgcolor: '#ffffff',
-        margin: {l: 60, r: 60, t: 50, b: 50},
+        margin: D.margins, height: D.h2,
         xaxis: {title: 'Year', range: [0, 10], tick0: 0, dtick: 1},
         yaxis: {title: 'Outstanding Principal (CHF k)', tickformat: ',.0f', ticksuffix: 'k'},
-        font: {size: 16},
-        showlegend: true
-      }, {displayModeBar: false});
+        font: {size: D.font}, showlegend: true
+      }, {displayModeBar: false, responsive: true});
 
-      // Chart 3: Bonus savings (bars) + cumulative (line on y2)
+      // Chart 3 — Bonus savings (bars) + cumulative (line on y2)
       const barColors = savings.map(v => v > 0 ? CBONUS : '#E2E8F0');
       const bars = {type: 'bar', x: tYears, y: savings, name: 'Monthly saving',
                     marker: {color: barColors, opacity: 0.7}, hovertemplate: '%{y:,.0f}<extra></extra>'};
       const lineCum = {type: 'scatter', mode: 'lines', x: tYears, y: cumSave, name: 'Cumulative saving',
-                       line: {color: CSAVE, width: 3}, yaxis: 'y2',
-                       hovertemplate: '%{y:,.0f}<extra></extra>'};
+                       line: {color: CSAVE, width: 3}, yaxis: 'y2', hovertemplate: '%{y:,.0f}<extra></extra>'};
 
       Plotly.react('chart3', [bars, lineCum], {
         title: '🌿 Bonus Vert — Savings vs Standard Mortgage',
         paper_bgcolor: '#ffffff', plot_bgcolor: '#ffffff',
-        margin: {l: 60, r: 60, t: 50, b: 50},
+        margin: D.margins, height: D.h3,
         xaxis: {title: 'Year', range: [0, 10], tick0: 0, dtick: 1},
         yaxis: {title: 'Monthly Saving (CHF)', tickformat: ',.0f'},
         yaxis2: {title: 'Cumulative Saving (CHF)', overlaying: 'y', side: 'right', tickformat: ',.0f'},
-        font: {size: 16},
-        showlegend: true
-      }, {displayModeBar: false});
+        font: {size: D.font}, showlegend: true
+      }, {displayModeBar: false, responsive: true});
 
-      // Chart 4: Rate compare — active vs single‑tranche @ rateCmp
+      // Chart 4 — Rate compare (bars + cumulative line)
       const barColors4 = diffMonthly.map(v => v > 0 ? CDIFFP : CDIFFN);
       const bars4 = {type: 'bar', x: tYears, y: diffMonthly, name: 'Monthly difference',
                      marker: {color: barColors4, opacity: 0.7}, hovertemplate: '%{y:,.0f}<extra></extra>'};
       const lineCum4 = {type: 'scatter', mode: 'lines', x: tYears, y: cumDiff, name: 'Cumulative difference',
-                        line: {color: CSAVE, width: 3}, yaxis: 'y2',
-                        hovertemplate: '%{y:,.0f}<extra></extra>'};
-
-      // Y limits for better headroom
+                        line: {color: CSAVE, width: 3}, yaxis: 'y2', hovertemplate: '%{y:,.0f}<extra></extra>'};
       const yAbs = Math.max(1, Math.max(...diffMonthly.map(v => Math.abs(v))));
+
       Plotly.react('chart4', [bars4, lineCum4], {
         title: `Rate Compare — Active vs Single‑tranche @ ${rateCmp.toFixed(2)}%`,
         paper_bgcolor: '#ffffff', plot_bgcolor: '#ffffff',
-        margin: {l: 60, r: 60, t: 50, b: 50},
+        margin: D.margins, height: D.h4,
         xaxis: {title: 'Year', range: [0, 10], tick0: 0, dtick: 1},
         yaxis: {title: 'Monthly Difference (CHF)', tickformat: ',.0f', range: [-yAbs * 1.3, yAbs * 1.3]},
         yaxis2: {title: 'Cumulative Difference (CHF)', overlaying: 'y', side: 'right', tickformat: ',.0f'},
-        font: {size: 16},
-        showlegend: true
-      }, {displayModeBar: false});
+        font: {size: D.font}, showlegend: true
+      }, {displayModeBar: false, responsive: true});
     }
 
     function attachEvents() {
       [priceEl, rate1El, rate2El, rateCmpEl, years1El, years2El, splitEl, bonusEl]
         .forEach(inp => inp.addEventListener('input', update));
+
+      // Debounced resize/orientation handling for better mobile fit
+      let resizeTimer;
+      const onResized = () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(update, 120); };
+      window.addEventListener('resize', onResized);
+      window.addEventListener('orientationchange', onResized);
     }
 
     // Init
-    buildCharts();
     attachEvents();
     update();
   </script>
